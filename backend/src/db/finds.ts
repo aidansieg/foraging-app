@@ -20,13 +20,14 @@ export async function createFind(
   dateFound: string,
   yieldEstimate: number | null,
   photoUrl: string | null,
-  notes: string | null
+  notes: string | null,
+  weatherSnapshot: Record<string, unknown> | null
 ): Promise<FindRow> {
   const result = await pool.query<FindRow>(
-    `INSERT INTO finds (user_id, spot_id, species_id, date_found, yield_estimate, photo_url, notes)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
+    `INSERT INTO finds (user_id, spot_id, species_id, date_found, yield_estimate, photo_url, notes, weather_snapshot)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
-    [userId, spotId, speciesId, dateFound, yieldEstimate, photoUrl, notes]
+    [userId, spotId, speciesId, dateFound, yieldEstimate, photoUrl, notes, weatherSnapshot]
   );
   return result.rows[0];
 }

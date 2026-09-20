@@ -15,4 +15,5 @@ export const config = {
   databaseUrl: requireEnv("DATABASE_URL"),
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? "http://localhost:5173",
   jwtSecret: requireEnv("JWT_SECRET"),
+  noaaUserAgent: requireEnv("NOAA_USER_AGENT"),
 };

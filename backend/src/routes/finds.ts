@@ -4,6 +4,7 @@ import { asyncHandler } from "../utils/asyncHandler";
 import { isValidUUID } from "../utils/validation";
 import { findSpotForUser } from "../db/spots";
 import { findSpeciesById } from "../db/species";
+import { getWeatherSnapshotForSpot } from "../services/noaaWeather";
 import {
   createFind,
   listFindsForUser,
@@ -53,6 +54,13 @@ findsRouter.post(
       return res.status(400).json({ error: "species_id does not match a known species" });
     }
 
+    let weatherSnapshot: Record<string, unknown> | null = null;
+    try {
+      weatherSnapshot = await getWeatherSnapshotForSpot(spot.lat, spot.lon);
+    } catch (err) {
+      console.error(`Weather snapshot fetch failed for spot ${spot.id}:`, err);
+    }
+
     const find = await createFind(
       req.userId!,
       spot_id,
@@ -60,7 +68,8 @@ findsRouter.post(
       date_found,
       typeof yield_estimate === "number" ? yield_estimate : null,
       typeof photo_url === "string" ? photo_url : null,
-      typeof notes === "string" ? notes : null
+      typeof notes === "string" ? notes : null,
+      weatherSnapshot
     );
 
     res.status(201).json(find);

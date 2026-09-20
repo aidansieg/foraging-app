@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { requireAuth } from "../middleware/auth";
 import { asyncHandler } from "../utils/asyncHandler";
 import { isValidUUID } from "../utils/validation";
+import { getWeatherSnapshotForSpot } from "../services/noaaWeather";
 import {
   createSpot,
   listSpotsForUser,
@@ -66,6 +67,27 @@ spotsRouter.get(
       return res.status(404).json({ error: "Spot not found" });
     }
     res.json(spot);
+  })
+);
+
+spotsRouter.get(
+  "/spots/:id/weather",
+  asyncHandler(async (req: Request, res: Response) => {
+    if (!isValidUUID(req.params.id)) {
+      return res.status(400).json({ error: "id must be a valid UUID" });
+    }
+    const spot = await findSpotForUser(req.params.id, req.userId!);
+    if (!spot) {
+      return res.status(404).json({ error: "Spot not found" });
+    }
+
+    try {
+      const snapshot = await getWeatherSnapshotForSpot(spot.lat, spot.lon);
+      res.json(snapshot);
+    } catch (err) {
+      console.error(`Weather fetch failed for spot ${spot.id}:`, err);
+      res.status(502).json({ error: "Could not fetch weather data from NOAA right now" });
+    }
   })
 );
 
